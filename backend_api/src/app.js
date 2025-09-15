@@ -44,12 +44,18 @@ app.use(express.json());
 // Mount routes
 app.use('/', routes);
 
-// Error handling middleware
+/**
+ * Global error handler with validation details when available.
+ */
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    status: 'error',
-    message: 'Internal Server Error',
+  const status = err.status || 500;
+  if (status >= 500) {
+    console.error(err.stack || err.message || err);
+  }
+  res.status(status).json({
+    status: status === 500 ? 'error' : 'fail',
+    message: err.message || 'Internal Server Error',
+    ...(err.details ? { errors: err.details } : {}),
   });
 });
 
